@@ -1,0 +1,13 @@
+【日報】{reporter} {month}/{day}({day_of_week})
+お疲れさまです。
+{reporter}です。
+
+本日の日報です。
+
+【勤務時間】
+{start}-{end}
+
+【業務内容】
+{worked_ticket}
+
+【ひとこと】
