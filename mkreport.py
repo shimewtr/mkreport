@@ -8,14 +8,37 @@ REDMINE_URL = os.environ['REDMINE_URL']
 REDMINE_API_KEY = os.environ['REDMINE_API_KEY']
 BASIC_AUTH_USER = os.environ['BASIC_AUTH_USER']
 BASIC_AUTH_PASSWORD = os.environ['BASIC_AUTH_PASSWORD']
-
+today = datetime.date.today()
 
 def main():
     worked_time = input_time()
-    print(worked_time)
     worked_ticket = input_ticket_id()
-    make_report(worked_ticket)
+    worked_ticket_text = build_worked_ticket(worked_ticket)
+    report_content = build_report_content(worked_time, worked_ticket_text)
+    make_report(report_content)
 
+
+def build_worked_ticket(worked_ticket):
+    worked_ticket_text = ''
+    for number, title in worked_ticket.items():
+        worked_ticket_text += "#{number} {title}\n".format(number=number, title=title)
+    return worked_ticket_text
+
+
+def build_report_content(worked_time, worked_ticket):
+    day_of_week_list = ["月", "火", "水", "木", "金", "土", "日"]
+    start = worked_time[0]
+    end = worked_time[1]
+    report_content = open('./report_content.txt', 'r').read().format(
+        reporter=REPORTER,
+        month=today.month,
+        day=today.day,
+        day_of_week= day_of_week_list[today.weekday()],
+        start=start,
+        end=end,
+        worked_ticket=worked_ticket
+    )
+    return report_content
 
 def confirm_issue_title(issue_title):
     dic = {'y': True, 'yes': True, 'n': False, 'no': False}
@@ -88,23 +111,13 @@ def input_time():
             print('入力形式が正しくありません。')
     return [start_time, end_time]
 
-
-def make_report(worked_ticket):
-    today = datetime.date.today()
-    month = today.month
-    day = today.day
-    day_of_week_list = ["月", "火", "水", "木", "金", "土", "日"]
-    day_of_week = day_of_week_list[today.weekday()]
-    report_content = open('./report_content.txt', 'r').read().format(
-        reporter=REPORTER,
-        month=month,
-        day=day,
-        day_of_week=day_of_week,
-        start='',
-        end='',
-        worked_ticket=worked_ticket
-    )
-    print(report_content)
+def make_report(report_content):
+    dir_name = "./daily_report/{year}/{month}/".format(year=today.year, month=today.month)
+    file_name = dir_name + str(today.day) + ".txt"
+    os.makedirs(dir_name, exist_ok=True)
+    f = open(file_name, 'x')
+    f.write(report_content)
+    f.close()
 
 
 if __name__ == '__main__':
