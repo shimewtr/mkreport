@@ -2,13 +2,15 @@ import sys
 import os
 import datetime
 import requests
+from redminelib import Redmine
 
 REPORTER = os.environ['REPORTER']
 REDMINE_URL = os.environ['REDMINE_URL']
 REDMINE_API_KEY = os.environ['REDMINE_API_KEY']
-BASIC_AUTH_USER = os.environ['BASIC_AUTH_USER']
-BASIC_AUTH_PASSWORD = os.environ['BASIC_AUTH_PASSWORD']
+
+redmine = Redmine(REDMINE_URL, key=REDMINE_API_KEY)
 today = datetime.date.today()
+
 
 def main():
     worked_time = input_time()
@@ -21,7 +23,8 @@ def main():
 def build_worked_ticket(worked_ticket):
     worked_ticket_text = ''
     for number, title in worked_ticket.items():
-        worked_ticket_text += "#{number} {title}\n".format(number=number, title=title)
+        worked_ticket_text += "#{number} {title}\n".format(
+            number=number, title=title)
     return worked_ticket_text
 
 
@@ -33,12 +36,13 @@ def build_report_content(worked_time, worked_ticket):
         reporter=REPORTER,
         month=today.month,
         day=today.day,
-        day_of_week= day_of_week_list[today.weekday()],
+        day_of_week=day_of_week_list[today.weekday()],
         start=start,
         end=end,
         worked_ticket=worked_ticket
     )
     return report_content
+
 
 def confirm_issue_title(issue_title):
     dic = {'y': True, 'yes': True, 'n': False, 'no': False}
@@ -54,17 +58,10 @@ def confirm_issue_title(issue_title):
 
 
 def get_issue_title(id):
-    url = "{url}issues.json?issue_id={id}&key={api_key}".format(
-        url=REDMINE_URL,
-        id=id,
-        api_key=REDMINE_API_KEY
-    )
-
-    r = requests.get(url, auth=(BASIC_AUTH_USER, BASIC_AUTH_PASSWORD)).json()
-
-    if len(r["issues"]):
-        return r["issues"][0]["subject"]
-    else:
+    try:
+        issue_title = redmine.issue.get(id)
+        return issue_title
+    except:
         return False
 
 
@@ -86,10 +83,12 @@ def input_ticket_id():
             print('チケットの番号は数字で入力してください')
     return ticket_ids
 
+
 def input_time():
     while True:
         default_start_time = '0730'
-        inp = input('勤務開始時間を「hhmm」で入力してください(デフォルト「' + default_start_time + '」)\n')
+        inp = input('勤務開始時間を「hhmm」で入力してください(デフォルト「' +
+                    default_start_time + '」)\n')
         if not(inp):
             start_time = default_start_time
             break
@@ -100,7 +99,8 @@ def input_time():
             print('入力形式が正しくありません。')
     while True:
         default_end_time = '1630'
-        inp = input('勤務終了時間を「hhmm」で入力してください(デフォルト「' + default_end_time + '」)\n')
+        inp = input('勤務終了時間を「hhmm」で入力してください(デフォルト「' +
+                    default_end_time + '」)\n')
         if not(inp):
             end_time = default_end_time
             break
@@ -111,8 +111,10 @@ def input_time():
             print('入力形式が正しくありません。')
     return [start_time, end_time]
 
+
 def make_report(report_content):
-    dir_name = "./daily_report/{year}/{month}/".format(year=today.year, month=today.month)
+    dir_name = "./daily_report/{year}/{month}/".format(
+        year=today.year, month=today.month)
     file_name = dir_name + str(today.day) + ".txt"
     os.makedirs(dir_name, exist_ok=True)
     f = open(file_name, 'x')
