@@ -18,8 +18,9 @@ def main():
     dir_path, file_name = build_file_name()
     # check_exist_report(dir_path, file_name)
     worked_time = input_worked_time()
-    worked_ticket = input_ticket_id()
-    worked_ticket_text = build_worked_ticket(worked_ticket)
+    worked_ticket, worked_ticket_comments = input_ticket_id()
+    worked_ticket_text = build_worked_ticket(
+        worked_ticket, worked_ticket_comments)
     report_content = build_report_content(worked_time, worked_ticket_text)
     make_report(dir_path, file_name, report_content)
 
@@ -31,11 +32,12 @@ def build_file_name():
     return dir_path, file_name
 
 
-def build_worked_ticket(worked_ticket):
+def build_worked_ticket(worked_ticket, worked_ticket_comments):
     worked_ticket_text = ''
     for number, title in worked_ticket.items():
         worked_ticket_text += "#{number} {title}\n".format(
             number=number, title=title)
+        worked_ticket_text += "  " + worked_ticket_comments[number]
     return worked_ticket_text
 
 
@@ -89,8 +91,14 @@ def get_issue_title(id):
         return False
 
 
+def input_ticket_comment():
+    inp = input('日報に記載する作業内容を入力してください\n')
+    return inp
+
+
 def input_ticket_id():
     ticket_ids = {}
+    ticket_comments = {}
     while True:
         prefix = '作業した' if len(ticket_ids) == 0 else '他にも作業したチケットがあれば'
         inp = input(prefix + 'チケットの番号を入力してください(qを入力すると終了)\n')
@@ -101,11 +109,12 @@ def input_ticket_id():
             if issue_title:
                 if confirm_issue_title(issue_title):
                     ticket_ids[inp] = issue_title
+                    ticket_comments[inp] = input_ticket_comment()
             else:
                 print_error('チケットが存在しません')
         else:
             print_error('チケットの番号は数字で入力してください')
-    return ticket_ids
+    return ticket_ids, ticket_comments
 
 
 def input_time(default_time, target_time):
