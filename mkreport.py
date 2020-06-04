@@ -13,11 +13,20 @@ today = datetime.date.today()
 
 
 def main():
+    dir_path, file_name = build_file_name()
+    check_exist_report(dir_path, file_name)
     worked_time = input_time()
     worked_ticket = input_ticket_id()
     worked_ticket_text = build_worked_ticket(worked_ticket)
     report_content = build_report_content(worked_time, worked_ticket_text)
-    make_report(report_content)
+    make_report(dir_path, file_name, report_content)
+
+
+def build_file_name():
+    dir_path = "./daily_report/{year}/{month}/".format(
+    year=today.year, month=today.month)
+    file_name = str(today.day) + ".txt"
+    return dir_path, file_name
 
 
 def build_worked_ticket(worked_ticket):
@@ -42,6 +51,12 @@ def build_report_content(worked_time, worked_ticket):
         worked_ticket=worked_ticket
     )
     return report_content
+
+
+def check_exist_report(dir_path, file_name):
+    if os.path.isfile(dir_path + file_name):
+        print('すでに本日の日報があります。')
+        sys.exit()
 
 
 def confirm_issue_title(issue_title):
@@ -112,12 +127,9 @@ def input_time():
     return [start_time, end_time]
 
 
-def make_report(report_content):
-    dir_name = "./daily_report/{year}/{month}/".format(
-        year=today.year, month=today.month)
-    file_name = dir_name + str(today.day) + ".txt"
-    os.makedirs(dir_name, exist_ok=True)
-    f = open(file_name, 'x')
+def make_report(dir_path, file_name, report_content):
+    os.makedirs(dir_path, exist_ok=True)
+    f = open(dir_path + file_name, 'x')
     f.write(report_content)
     f.close()
 
