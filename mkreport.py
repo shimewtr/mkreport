@@ -5,6 +5,8 @@ import requests
 from redminelib import Redmine
 
 REPORTER = os.environ['REPORTER']
+DEFAULT_START_TIME = os.environ['DEFAULT_START_TIME']
+DEFAULT_END_TIME = os.environ['DEFAULT_END_TIME']
 REDMINE_URL = os.environ['REDMINE_URL']
 REDMINE_API_KEY = os.environ['REDMINE_API_KEY']
 
@@ -14,8 +16,8 @@ today = datetime.date.today()
 
 def main():
     dir_path, file_name = build_file_name()
-    check_exist_report(dir_path, file_name)
-    worked_time = input_time()
+    # check_exist_report(dir_path, file_name)
+    worked_time = input_worked_time()
     worked_ticket = input_ticket_id()
     worked_ticket_text = build_worked_ticket(worked_ticket)
     report_content = build_report_content(worked_time, worked_ticket_text)
@@ -24,7 +26,7 @@ def main():
 
 def build_file_name():
     dir_path = "./daily_report/{year}/{month}/".format(
-    year=today.year, month=today.month)
+        year=today.year, month=today.month)
     file_name = str(today.day) + ".txt"
     return dir_path, file_name
 
@@ -55,7 +57,7 @@ def build_report_content(worked_time, worked_ticket):
 
 def check_exist_report(dir_path, file_name):
     if os.path.isfile(dir_path + file_name):
-        print('すでに本日の日報があります。')
+        print_error('すでに本日の日報があります。')
         sys.exit()
 
 
@@ -68,14 +70,21 @@ def confirm_issue_title(issue_title):
             break
         except:
             pass
-        print('yかnを入力してください。')
+        print_error('yかnを入力してください。')
     return inp
+
+
+def format_time(time):
+    return_time = time[:2] + ':' + time[2:]
+    if return_time[0] == '0':
+        return_time = return_time[1:]
+    return return_time
 
 
 def get_issue_title(id):
     try:
         issue_title = redmine.issue.get(id)
-        return issue_title
+        return issue_title.subject
     except:
         return False
 
@@ -93,45 +102,52 @@ def input_ticket_id():
                 if confirm_issue_title(issue_title):
                     ticket_ids[inp] = issue_title
             else:
-                print('チケットが存在しません')
+                print_error('チケットが存在しません')
         else:
-            print('チケットの番号は数字で入力してください')
+            print_error('チケットの番号は数字で入力してください')
     return ticket_ids
 
 
-def input_time():
+def input_time(default_time, target_time):
+    return_time = default_time
     while True:
-        default_start_time = '0730'
-        inp = input('勤務開始時間を「hhmm」で入力してください(デフォルト「' +
-                    default_start_time + '」)\n')
+        inp = input(
+            target_time + 'を「hhmm」で入力してください(デフォルト「' + default_time + '」)\n')
         if not(inp):
-            start_time = default_start_time
             break
         elif inp.isdigit() and len(inp) == 4:
-            start_time = inp
+            return_time = inp
             break
         else:
-            print('入力形式が正しくありません。')
+            print_error('入力形式が正しくありません。')
+    return return_time
+
+
+def input_worked_time():
     while True:
-        default_end_time = '1630'
-        inp = input('勤務終了時間を「hhmm」で入力してください(デフォルト「' +
-                    default_end_time + '」)\n')
-        if not(inp):
-            end_time = default_end_time
-            break
-        elif inp.isdigit() and len(inp) == 4:
-            end_time = inp
+        start_time = input_time(DEFAULT_START_TIME, '勤務開始時間')
+        end_time = input_time(DEFAULT_END_TIME, '勤務終了時間')
+        if start_time <= end_time:
             break
         else:
-            print('入力形式が正しくありません。')
-    return [start_time, end_time]
+            print_error('勤務時間の入力がただしくありません。')
+    return [format_time(start_time), format_time(end_time)]
 
 
 def make_report(dir_path, file_name, report_content):
+    file_path = dir_path + file_name
     os.makedirs(dir_path, exist_ok=True)
-    f = open(dir_path + file_name, 'x')
+    f = open(file_path, 'w')
     f.write(report_content)
+    print('日報を作成しました。')
+    print(file_path)
     f.close()
+
+
+def print_error(error_text):
+    RED = '\033[31m'
+    END = '\033[0m'
+    print(RED + error_text + END)
 
 
 if __name__ == '__main__':
