@@ -16,12 +16,13 @@ today = datetime.date.today()
 
 def main():
     dir_path, file_name = build_file_name()
-    # check_exist_report(dir_path, file_name)
+    check_exist_report(dir_path, file_name)
     worked_time = input_worked_time()
-    worked_ticket, worked_ticket_comments = input_ticket_id()
+    worked_ticket, worked_ticket_comments, worked_ticket_time = input_worked_ticket()
     worked_ticket_text = build_worked_ticket(
         worked_ticket, worked_ticket_comments)
     report_content = build_report_content(worked_time, worked_ticket_text)
+    post_time_entry(worked_ticket_time)
     make_report(dir_path, file_name, report_content)
 
 
@@ -96,9 +97,24 @@ def input_ticket_comment():
     return inp
 
 
-def input_ticket_id():
+def input_ticket_time():
+    while True:
+        inp = input('作業時間を入力してください\n')
+        try:
+            float(inp)
+        except ValueError:
+            print_error('数値を入力してください')
+        else:
+            if float(inp) > 0:
+                break
+            print_error('入力した値が正しくありません')
+    return float(inp)
+
+
+def input_worked_ticket():
     ticket_ids = {}
     ticket_comments = {}
+    ticket_time = {}
     while True:
         prefix = '作業した' if len(ticket_ids) == 0 else '他にも作業したチケットがあれば'
         inp = input(prefix + 'チケットの番号を入力してください(qを入力すると終了)\n')
@@ -110,11 +126,12 @@ def input_ticket_id():
                 if confirm_issue_title(issue_title):
                     ticket_ids[inp] = issue_title
                     ticket_comments[inp] = input_ticket_comment()
+                    ticket_time[inp] = input_ticket_time()
             else:
                 print_error('チケットが存在しません')
         else:
             print_error('チケットの番号は数字で入力してください')
-    return ticket_ids, ticket_comments
+    return ticket_ids, ticket_comments, ticket_time
 
 
 def input_time(default_time, target_time):
@@ -151,6 +168,17 @@ def make_report(dir_path, file_name, report_content):
     print('日報を作成しました。')
     print(file_path)
     f.close()
+
+
+def post_time_entry(worked_ticket_time):
+    for number, hour in worked_ticket_time.items():
+        try:
+            redmine.time_entry.create(
+                issue_id=number,
+                hours=hour
+            )
+        except:
+            print_error('作業時間の入力にエラーが発生しました')
 
 
 def print_error(error_text):
