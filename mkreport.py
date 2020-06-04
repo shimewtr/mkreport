@@ -17,11 +17,16 @@ today = datetime.date.today()
 def main():
     dir_path, file_name = build_file_name()
     check_exist_report(dir_path, file_name)
+
     worked_time = input_worked_time()
     worked_ticket, worked_ticket_comments, worked_ticket_time = input_worked_ticket()
+    one_thing = input_one_thing()
+
     worked_ticket_text = build_worked_ticket(
         worked_ticket, worked_ticket_comments)
-    report_content = build_report_content(worked_time, worked_ticket_text)
+    one_thing_text = build_one_thing(one_thing)
+
+    report_content = build_report_content(worked_time, worked_ticket_text, one_thing_text)
     post_time_entry(worked_ticket_time)
     make_report(dir_path, file_name, report_content)
 
@@ -33,8 +38,12 @@ def build_file_name():
     return dir_path, file_name
 
 
+def build_one_thing(one_thing):
+    return "" if not (one_thing) else "【ひとこと】\n" + one_thing
+
+
 def build_worked_ticket(worked_ticket, worked_ticket_comments):
-    worked_ticket_text = ''
+    worked_ticket_text = "【作業内容】\n"
     for number, title in worked_ticket.items():
         worked_ticket_text += "#{number} {title}\n".format(
             number=number, title=title)
@@ -42,7 +51,7 @@ def build_worked_ticket(worked_ticket, worked_ticket_comments):
     return worked_ticket_text
 
 
-def build_report_content(worked_time, worked_ticket):
+def build_report_content(worked_time, worked_ticket, one_thing):
     day_of_week_list = ["月", "火", "水", "木", "金", "土", "日"]
     start = worked_time[0]
     end = worked_time[1]
@@ -53,7 +62,8 @@ def build_report_content(worked_time, worked_ticket):
         day_of_week=day_of_week_list[today.weekday()],
         start=start,
         end=end,
-        worked_ticket=worked_ticket
+        worked_ticket=worked_ticket,
+        one_thing = one_thing
     )
     return report_content
 
@@ -90,6 +100,12 @@ def get_issue_title(id):
         return issue_title.subject
     except:
         return False
+
+
+
+def input_one_thing():
+    inp = input('日報の最後に記載する一言を入力してください\n')
+    return inp
 
 
 def input_ticket_comment():

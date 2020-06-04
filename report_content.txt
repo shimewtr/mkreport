@@ -7,7 +7,6 @@
 【勤務時間】
 {start}-{end}
 
-【業務内容】
 {worked_ticket}
 
-【ひとこと】
+{one_thing}
