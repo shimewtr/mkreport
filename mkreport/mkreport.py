@@ -106,8 +106,14 @@ def get_issue_title(id):
 
 
 def input_one_thing():
-    inp = input('日報の最後に記載する一言を入力してください\n')
-    return inp
+    one_thing = ""
+    while True:
+        inp = input('日報の最後に記載する一言を入力してください(qを入力すると終了)\n')
+        if inp == 'q':
+            break
+        else:
+            one_thing += inp
+    return one_thing
 
 
 def input_ticket_comment():
