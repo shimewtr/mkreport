@@ -47,7 +47,7 @@ def build_worked_ticket(worked_ticket, worked_ticket_comments):
     for number, title in worked_ticket.items():
         worked_ticket_text += "#{number} {title}\n".format(
             number=number, title=title)
-        worked_ticket_text += "  " + worked_ticket_comments[number]
+        worked_ticket_text += "  " + worked_ticket_comments[number] + "\n"
     return worked_ticket_text
 
 
