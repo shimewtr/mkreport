@@ -52,10 +52,12 @@ def build_worked_ticket(worked_ticket, worked_ticket_comments):
 
 
 def build_report_content(worked_time, worked_ticket, one_thing):
+    module_dir = os.path.dirname(__file__)
+    filepath = os.path.join(module_dir, 'report_content.txt')
     day_of_week_list = ["月", "火", "水", "木", "金", "土", "日"]
     start = worked_time[0]
     end = worked_time[1]
-    report_content = open('./report_content.txt', 'r').read().format(
+    report_content = open(filepath, 'r').read().format(
         reporter=REPORTER,
         month=today.month,
         day=today.day,
