@@ -2,6 +2,7 @@ import sys
 import os
 import datetime
 import requests
+import pyperclip
 from redminelib import Redmine
 
 REPORTER = os.environ['REPORTER']
@@ -29,6 +30,7 @@ def main():
     report_content = build_report_content(worked_time, worked_ticket_text, one_thing_text)
     post_time_entry(worked_ticket_time)
     make_report(dir_path, file_name, report_content)
+    pyperclip.copy(report_content)
 
 
 def build_file_name():
@@ -112,7 +114,7 @@ def input_one_thing():
         if inp == 'q':
             break
         else:
-            one_thing += inp
+            one_thing += inp + "\n"
     return one_thing
 
 

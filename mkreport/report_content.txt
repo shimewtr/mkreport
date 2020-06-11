@@ -8,5 +8,4 @@
 {start}-{end}
 
 {worked_ticket}
-
 {one_thing}

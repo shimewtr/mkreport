@@ -12,7 +12,7 @@ setup(
     url='https://github.com/wawawatataru/mkreport',
     packages=['mkreport'],
     license='MIT',
-    install_requires=["requests", "python-redmine"],
+    install_requires=["requests", "python-redmine", "pyperclip"],
     entry_points={
         "console_scripts": [
             "mkreport = mkreport:main"
