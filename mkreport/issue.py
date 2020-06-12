@@ -1,20 +1,35 @@
 from . import print_error
 
+
 class Issue:
     def __init__(self, id=None, name=None):
-        self.id = id
-        self.name = name
-        self.comment = self.input_comment()
-        self.time = self.input_time()
+        self.__id = id
+        self.__name = name
+        self.__comment = self.__input_comment()
+        if id is not None:
+            self.__time = self.__input_time()
 
-    def print_name(self):
-        print(self.name)
+    @property
+    def id(self):
+        return self.__id
 
-    def input_comment(self):
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def comment(self):
+        return self.__comment
+
+    @property
+    def time(self):
+        return self.__time
+
+    def __input_comment(self):
         inp = input('日報に記載する作業内容を入力してください\n')
         return inp
 
-    def input_time(self):
+    def __input_time(self):
         while True:
             inp = input('作業時間を入力してください\n')
             try:
@@ -26,4 +41,3 @@ class Issue:
                     break
                 print_error.print_error('0以上の数値を入力してください')
         return float(inp)
-
