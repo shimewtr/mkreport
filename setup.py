@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='mkreport',
-    version='0.0.19',
+    version='0.0.20',
     description='Make daily report and create time entry at redmine',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
