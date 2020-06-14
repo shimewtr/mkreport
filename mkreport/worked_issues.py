@@ -2,13 +2,14 @@ import os
 from . import issue, print_error
 from redminelib import Redmine
 
-
 class WorkedIssues:
     REDMINE_URL = os.environ['REDMINE_URL']
     REDMINE_API_KEY = os.environ['REDMINE_API_KEY']
 
     def __init__(self):
         self.__redmine = Redmine(self.REDMINE_URL, key=self.REDMINE_API_KEY)
+        self.__current_user = self.__redmine.user.get('current')
+        self.__doing_issues = self.__redmine.issue.filter(assigned_to_id=self.__current_user.id)
         self.__redmine_statuses = self.__build_redmine_statuses()
         self.__issues = self.__input_worked_issues()
         self.__post_time_entry()
@@ -57,6 +58,9 @@ class WorkedIssues:
     def __input_worked_issues(self):
         issues = []
         while True:
+            print("担当者が自分のチケット一覧")
+            for doing_issue in self.__doing_issues:
+                print("  %d:%s" % (doing_issue.id, doing_issue.subject))
             prefix = '作業した' if len(issues) == 0 else '他にも作業したことがあれば'
             inp = input(prefix + 'チケットの番号か内容を入力してください(qを入力すると終了)\n')
             if inp == 'q':
@@ -67,7 +71,7 @@ class WorkedIssues:
                     issues.append(issue.Issue(id=inp, name=redmine_issue.subject,
                                               status=redmine_issue.status, statuses=self.__redmine_statuses))
             else:
-                issues.append(issue.Issue(id=None, name=inp))
+                issues.append(issue.Issue(name=inp))
         return issues
 
     def __post_issue_status(self):
