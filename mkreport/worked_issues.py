@@ -9,13 +9,21 @@ class WorkedIssues:
 
     def __init__(self):
         self.__redmine = Redmine(self.REDMINE_URL, key=self.REDMINE_API_KEY)
+        self.__redmine_statuses = self.__build_redmine_statuses()
         self.__issues = self.__input_worked_issues()
         self.__post_time_entry()
+        self.__post_issue_status()
         self.__issue_text = self.__build_worked_issue_text()
 
     @property
     def issue_text(self):
         return self.__issue_text
+
+    def __build_redmine_statuses(self):
+        statuses = {}
+        for status in self.__redmine.issue_status.all():
+            statuses[status.name] = status.id
+        return statuses
 
     def __build_worked_issue_text(self):
         worked_issue_text = "【作業内容】\n"
@@ -38,10 +46,10 @@ class WorkedIssues:
             print_error.print_error('yかnを入力してください。')
         return confirm
 
-    def __get_redmine_subject(self, inp):
+    def __get_redmine_issue(self, inp):
         try:
-            issue_title = self.__redmine.issue.get(str(inp))
-            return issue_title.subject
+            issue = self.__redmine.issue.get(str(inp))
+            return issue
         except:
             print_error.print_error('チケットが存在しません')
             return False
@@ -54,18 +62,26 @@ class WorkedIssues:
             if inp == 'q':
                 break
             elif inp.isdigit():
-                redmine_subject = self.__get_redmine_subject(inp)
-                if redmine_subject and self.__confirm_redmine_subject(redmine_subject):
-                    issues.append(issue.Issue(id=inp, name=redmine_subject))
+                redmine_issue = self.__get_redmine_issue(inp)
+                if redmine_issue and self.__confirm_redmine_subject(redmine_issue.subject):
+                    issues.append(issue.Issue(id=inp, name=redmine_issue.subject,
+                                              status=redmine_issue.status, statuses=self.__redmine_statuses))
             else:
                 issues.append(issue.Issue(id=None, name=inp))
         return issues
 
+    def __post_issue_status(self):
+        for issue in self.__issues:
+            if issue.id is not None and issue.status_changed():
+                try:
+                    redmine_issue = self.__redmine.issue.get(issue.id)
+                    redmine_issue.status_id = issue.new_status_id
+                    redmine_issue.save()
+                except:
+                    print_error.print_error('ステータスの更新に失敗しました。')
+
     def __post_time_entry(self):
         for issue in self.__issues:
-            print("dfadsf")
-            print(issue.id)
-            print("dfadsf")
             if issue.id is not None:
                 try:
                     self.__redmine.time_entry.create(
@@ -73,4 +89,4 @@ class WorkedIssues:
                         hours=issue.time
                     )
                 except:
-                    print_error('作業時間の入力にエラーが発生しました')
+                    print_error.print_error('作業時間の入力にエラーが発生しました')
