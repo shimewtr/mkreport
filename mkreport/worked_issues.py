@@ -60,7 +60,7 @@ class WorkedIssues:
         while True:
             print("担当者が自分のチケット一覧")
             for doing_issue in self.__doing_issues:
-                print("  %d:%s" % (doing_issue.id, doing_issue.subject))
+                print("  {}:{}".format(str(doing_issue.id).rjust(8), doing_issue.subject))
             prefix = '作業した' if len(issues) == 0 else '他にも作業したことがあれば'
             inp = input(prefix + 'チケットの番号か内容を入力してください(qを入力すると終了)\n')
             if inp == 'q':
