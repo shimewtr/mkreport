@@ -1,6 +1,7 @@
 import datetime
 import os
 import pyperclip
+import re
 import sys
 from . import print_error
 
@@ -33,7 +34,10 @@ class FileOperation:
         print('日報を作成しました。')
         print(self.__file_path)
         f.close()
-        pyperclip.copy(self.__content)
+        regex = r'^.*?\n'
+        matchObj = re.search(regex, self.__content)
+        pyperclip.copy(matchObj.group().replace('\n', ""))
+        pyperclip.copy(re.sub(regex, "", self.__content))
 
     def __build_comment(self):
         input_comment = self.__input_comment()
